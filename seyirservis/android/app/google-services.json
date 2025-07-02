@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "859528482944",
+    "project_id": "seyirserviceapp",
+    "storage_bucket": "seyirserviceapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859528482944:android:0f8c9e9b5c267f022dd665",
+        "android_client_info": {
+          "package_name": "com.example.seyirservis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkugqisyo9flO7QSQf3GU-O5k22_b1ndI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
