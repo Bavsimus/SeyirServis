@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/services/auth_service.dart';
-import 'package:seyirservis/styles/app_colors.dart';
+import '../services/auth_service.dart';
+import '../styles/app_colors.dart';
 
 class SurucuSayfasi extends StatefulWidget {
   const SurucuSayfasi({super.key});

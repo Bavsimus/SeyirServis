@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/surucu_sayfasi.dart';
-import 'package:seyirservis/screens/surucu_profil_sayfasi.dart';
-import 'package:seyirservis/styles/app_colors.dart';
-import 'package:seyirservis/widgets/custom_tab_bar.dart';
+import '../screens/surucu_sayfasi.dart';
+import '../screens/surucu_profil_sayfasi.dart';
+import '../styles/app_colors.dart';
+import '../widgets/custom_tab_bar.dart';
 
 class SurucuAnaSayfa extends StatefulWidget {
   const SurucuAnaSayfa({super.key});

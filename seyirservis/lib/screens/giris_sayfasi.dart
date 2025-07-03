@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/surucu_sayfasi.dart';
-import 'package:seyirservis/screens/yolcu_sayfasi.dart';
-import 'package:seyirservis/services/auth_service.dart';
-import 'package:seyirservis/styles/app_colors.dart'; // Renkleri kullanmak için import edildi
+import '../screens/surucu_sayfasi.dart';
+import '../screens/yolcu_sayfasi.dart';
+import '../services/auth_service.dart';
+import '../styles/app_colors.dart'; // Renkleri kullanmak için import edildi
 
 class GirisSayfasi extends StatefulWidget {
   const GirisSayfasi({super.key});

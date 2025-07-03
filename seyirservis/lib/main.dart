@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:seyirservis/styles/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:seyirservis/widgets/auth_wrapper.dart'; // Yeni yönlendiriciyi import ediyoruz
+import '../widgets/auth_wrapper.dart'; // Yeni yönlendiriciyi import ediyoruz
 import 'firebase_options.dart';
 
 void main() async {

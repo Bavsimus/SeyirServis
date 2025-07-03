@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/giris_sayfasi.dart';
-import 'package:seyirservis/services/auth_service.dart';
-import 'package:seyirservis/styles/app_colors.dart';
+import '../screens/giris_sayfasi.dart';
+import '../services/auth_service.dart';
+import '../styles/app_colors.dart';
 
-class ProfilSayfasi extends StatefulWidget {
-  const ProfilSayfasi({super.key});
+class YolcuProfilSayfasi extends StatefulWidget {
+  const YolcuProfilSayfasi({super.key});
 
   @override
-  State<ProfilSayfasi> createState() => _ProfilSayfasiState();
+  State<YolcuProfilSayfasi> createState() => _YolcuProfilSayfasiState();
 }
 
-class _ProfilSayfasiState extends State<ProfilSayfasi> {
+class _YolcuProfilSayfasiState extends State<YolcuProfilSayfasi> {
   final AuthService _authService = AuthService();
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 

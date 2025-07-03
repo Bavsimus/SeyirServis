@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/styles/app_colors.dart';
+import '../styles/app_colors.dart';
 
 // Her bir sekmenin verisini tutmak için basit bir sınıf
 class TabItem {

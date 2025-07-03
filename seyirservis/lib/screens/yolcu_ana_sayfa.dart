@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/profil_sayfasi.dart';
-import 'package:seyirservis/screens/yolcu_sayfasi.dart';
-import 'package:seyirservis/styles/app_colors.dart';
-import 'package:seyirservis/widgets/custom_tab_bar.dart'; // Ortak widget import edildi
+import '../screens/yolcu_profil_sayfasi.dart';
+import '../screens/yolcu_sayfasi.dart';
+import '../styles/app_colors.dart';
+import '../widgets/custom_tab_bar.dart'; // Ortak widget import edildi
 
 class YolcuAnaSayfa extends StatefulWidget {
   const YolcuAnaSayfa({super.key});
@@ -16,7 +16,7 @@ class _YolcuAnaSayfaState extends State<YolcuAnaSayfa> {
 
   final List<Widget> _pages = [
     const YolcuSayfasi(),
-    const ProfilSayfasi(),
+    const YolcuProfilSayfasi(),
   ];
 
   final List<TabItem> _tabItems = [

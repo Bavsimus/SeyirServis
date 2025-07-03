@@ -2,11 +2,11 @@
 // Yolcuyu artık doğrudan haritaya değil, navbar içeren ana sayfaya yönlendirecek.
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/giris_sayfasi.dart';
-import 'package:seyirservis/screens/surucu_sayfasi.dart';
-import 'package:seyirservis/screens/yolcu_ana_sayfa.dart'; // Güncellendi
-import 'package:seyirservis/services/auth_service.dart';
-import 'package:seyirservis/screens/surucu_ana_sayfa.dart';
+import '../screens/giris_sayfasi.dart';
+import '../screens/surucu_sayfasi.dart';
+import '../screens/yolcu_ana_sayfa.dart'; // Güncellendi
+import '../services/auth_service.dart';
+import '../screens/surucu_ana_sayfa.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

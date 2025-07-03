@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:seyirservis/screens/giris_sayfasi.dart';
-import 'package:seyirservis/services/auth_service.dart';
+import '../screens/giris_sayfasi.dart';
+import '../services/auth_service.dart';
 
 class SurucuProfilSayfasi extends StatefulWidget {
   const SurucuProfilSayfasi({super.key});
