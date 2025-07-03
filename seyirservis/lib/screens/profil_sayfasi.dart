@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:seyirservis/screens/giris_sayfasi.dart';
@@ -13,15 +14,8 @@ class ProfilSayfasi extends StatefulWidget {
 
 class _ProfilSayfasiState extends State<ProfilSayfasi> {
   final AuthService _authService = AuthService();
-  User? _currentUser;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  @override
-  void initState() {
-    super.initState();
-    _currentUser = FirebaseAuth.instance.currentUser;
-  }
-
-  // Özel liste bölümünü oluşturan yardımcı metot
   Widget _buildCustomListSection({
     required BuildContext context,
     required String header,
@@ -36,7 +30,6 @@ class _ProfilSayfasiState extends State<ProfilSayfasi> {
             padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
             child: Text(
               header.toUpperCase(),
-              // HATA DÜZELTİLDİ: 'footnote' yerine geçerli bir stil kullanıldı.
               style: TextStyle(
                 fontSize: 13,
                 color: AppColors.secondaryText.resolveFrom(context),
@@ -47,9 +40,7 @@ class _ProfilSayfasiState extends State<ProfilSayfasi> {
             borderRadius: BorderRadius.circular(12.0),
             child: Container(
               color: AppColors.widgetBackground.resolveFrom(context),
-              child: Column(
-                children: children,
-              ),
+              child: Column(children: children),
             ),
           ),
         ],
@@ -76,52 +67,65 @@ class _ProfilSayfasiState extends State<ProfilSayfasi> {
           ),
         ),
         Expanded(
-          child: ListView(
-            children: [
-              const SizedBox(height: 20),
-              _buildCustomListSection(
-                context: context,
-                header: 'KULLANICI BİLGİLERİ',
-                children: <Widget>[
-                  CupertinoListTile(
-                    title: const Text('İsim Soyisim'),
-                    additionalInfo: Text(_currentUser?.displayName ?? 'İsim Yok'),
-                    leading: const Icon(CupertinoIcons.person_alt_circle_fill),
+          // Kullanıcı bilgilerini Firestore'dan çekmek için FutureBuilder kullanıyoruz
+          child: FutureBuilder<DocumentSnapshot?>(
+            future: _authService.getUserDetails(_currentUser!.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CupertinoActivityIndicator());
+              }
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const Center(child: Text("Kullanıcı bilgileri bulunamadı."));
+              }
+              
+              final userData = snapshot.data!.data() as Map<String, dynamic>;
+              final displayName = userData['displayName'] ?? 'İsim Yok';
+              final email = _currentUser?.email ?? 'E-posta Yok';
+
+              return ListView(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildCustomListSection(
+                    context: context,
+                    header: 'KULLANICI BİLGİLERİ',
+                    children: <Widget>[
+                      CupertinoListTile(
+                        title: const Text('İsim Soyisim'),
+                        additionalInfo: Text(displayName),
+                        leading: const Icon(CupertinoIcons.person_alt_circle_fill),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 58.0),
+                        child: Container(height: 0.5, color: CupertinoColors.separator.resolveFrom(context)),
+                      ),
+                      CupertinoListTile(
+                        title: const Text('E-posta'),
+                        additionalInfo: Text(email),
+                        leading: const Icon(CupertinoIcons.mail_solid),
+                      ),
+                    ],
                   ),
-                  // HATA DÜZELTİLDİ: Material 'Divider' yerine 'Container' ile ayırıcı yapıldı.
-                  Padding(
-                    padding: const EdgeInsets.only(left: 58.0),
-                    child: Container(
-                      height: 0.5,
-                      color: CupertinoColors.separator.resolveFrom(context),
-                    ),
-                  ),
-                  CupertinoListTile(
-                    title: const Text('E-posta'),
-                    additionalInfo: Text(_currentUser?.email ?? 'E-posta Yok'),
-                    leading: const Icon(CupertinoIcons.mail_solid),
+                  _buildCustomListSection(
+                    context: context,
+                    header: 'SERVİS AYARLARI',
+                    children: <Widget>[
+                      CupertinoListTile(
+                        title: const Text('Servise Alınma Konumum'),
+                        additionalInfo: const Text('Henüz ayarlanmadı'),
+                        leading: Icon(
+                          CupertinoIcons.location_solid,
+                          color: AppColors.primary.resolveFrom(context),
+                        ),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: () {
+                          print('Konum seçme sayfasına git');
+                        },
+                      ),
+                    ],
                   ),
                 ],
-              ),
-              _buildCustomListSection(
-                context: context,
-                header: 'SERVİS AYARLARI',
-                children: <Widget>[
-                  CupertinoListTile(
-                    title: const Text('Servise Alınma Konumum'),
-                    additionalInfo: const Text('Henüz ayarlanmadı'),
-                    leading: Icon(
-                      CupertinoIcons.location_solid,
-                      color: AppColors.primary.resolveFrom(context),
-                    ),
-                    trailing: const CupertinoListTileChevron(),
-                    onTap: () {
-                      print('Konum seçme sayfasına git');
-                    },
-                  ),
-                ],
-              ),
-            ],
+              );
+            },
           ),
         ),
       ],

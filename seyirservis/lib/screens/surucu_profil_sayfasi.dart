@@ -22,27 +22,30 @@ class _SurucuProfilSayfasiState extends State<SurucuProfilSayfasi> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Sürücü Profili'),
-        // Güvenli çıkış butonu buraya eklendi
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () async {
-            await _authService.signOut();
-            // rootNavigator: true, tüm tab yapısını kapatıp giriş sayfasına döner
-            Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-              CupertinoPageRoute(builder: (context) => const GirisSayfasi()),
-              (route) => false,
-            );
-          },
-          child: const Icon(CupertinoIcons.square_arrow_right),
+    // Sayfa artık bir tab içinde gösterildiği için, kendi Scaffold'u yerine
+    // içeriği ve üst navigasyon barını bir Column içinde döndürüyoruz.
+    return Column(
+      children: [
+        CupertinoNavigationBar(
+          middle: const Text('Sürücü Profili'),
+          trailing: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () async {
+              await _authService.signOut();
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                CupertinoPageRoute(builder: (context) => const GirisSayfasi()),
+                (route) => false,
+              );
+            },
+            child: const Icon(CupertinoIcons.square_arrow_right),
+          ),
         ),
-      ),
-      child: Center(
-        child: Text('Hoş Geldin, ${_currentUser?.displayName ?? 'Sürücü'}!'),
-      ),
+        Expanded(
+          child: Center(
+            child: Text('Hoş Geldin, ${_currentUser?.displayName ?? 'Sürücü'}!'),
+          ),
+        ),
+      ],
     );
   }
 }
-

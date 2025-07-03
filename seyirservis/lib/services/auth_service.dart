@@ -34,8 +34,13 @@ class AuthService {
       return null;
     }
   }
-
-  // ŞİFRE SIFIRLAMA E-POSTASI GÖNDERME FONKSİYONU - BU KISIM ÖNCEKİ KODLARINIZDA YOKTU!
+  
+  Future<DocumentSnapshot?> getUserDetails(String uid) async {
+    try {
+      return await _firestore.collection('users').doc(uid).get();
+    } catch (e) {
+      print("Kullanıcı detayları alınamadı: $e");
+      return null;}}}}  // ŞİFRE SIFIRLAMA E-POSTASI GÖNDERME FONKSİYONU - BU KISIM ÖNCEKİ KODLARINIZDA YOKTU!
   Future<String?> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

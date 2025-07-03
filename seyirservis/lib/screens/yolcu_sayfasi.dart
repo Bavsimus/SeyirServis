@@ -57,124 +57,128 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
 
   @override
   Widget build(BuildContext context) {
-    // Bu sayfanın artık kendi Scaffold'u yok, çünkü bir tab içinde gösteriliyor.
-    // Doğrudan içeriği döndürüyoruz.
-    return Stack(
+    return Column(
       children: [
-        StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('services')
-              .doc('service_vehicle_1')
-              .snapshots(),
-          builder: (context, snapshot) {
-            LatLng serviceLocation = LatLng(40.7700, 29.9200);
-            String servicePlate = "Yükleniyor...";
+        Expanded(
+          child: Stack(
+            children: [
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('services')
+                    .doc('service_vehicle_1')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  LatLng serviceLocation = LatLng(40.7700, 29.9200);
+                  String servicePlate = "Yükleniyor...";
 
-            if (snapshot.hasData && snapshot.data!.exists) {
-              final data = snapshot.data!.data() as Map<String, dynamic>;
-              final geoPoint = data['location'] as GeoPoint?;
-              if (geoPoint != null) {
-                serviceLocation = LatLng(geoPoint.latitude, geoPoint.longitude);
-              }
-              servicePlate = data['plate'] as String? ?? "Plaka Yok";
-            }
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    final geoPoint = data['location'] as GeoPoint?;
+                    if (geoPoint != null) {
+                      serviceLocation = LatLng(geoPoint.latitude, geoPoint.longitude);
+                    }
+                    servicePlate = data['plate'] as String? ?? "Plaka Yok";
+                  }
 
-            final List<Marker> markers = [];
-            markers.add(
-              Marker(
-                point: serviceLocation,
-                width: 80,
-                height: 80,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.primaryText.resolveFrom(context), width: 1),
-                      ),
-                      child: Text(
-                        servicePlate,
-                        style: TextStyle(
-                          color: AppColors.primaryText.resolveFrom(context),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
+                  final List<Marker> markers = [];
+                  markers.add(
+                    Marker(
+                      point: serviceLocation,
+                      width: 80,
+                      height: 80,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.primaryText.resolveFrom(context), width: 1),
+                            ),
+                            child: Text(
+                              servicePlate,
+                              style: TextStyle(
+                                color: AppColors.primaryText.resolveFrom(context),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            CupertinoIcons.bus,
+                            color: AppColors.primary.resolveFrom(context),
+                            size: 35,
+                          ),
+                        ],
                       ),
                     ),
-                    Icon(
-                      CupertinoIcons.bus,
-                      color: AppColors.primary.resolveFrom(context),
-                      size: 35,
+                  );
+
+                  if (_userLocation != null) {
+                    markers.add(
+                      Marker(
+                        point: _userLocation!,
+                        child: const Icon(
+                          CupertinoIcons.person_solid,
+                          color: CupertinoColors.activeBlue,
+                          size: 30,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: _userLocation ?? LatLng(40.7667, 29.9167),
+                      initialZoom: 13.0,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.seyirservis',
+                      ),
+                      MarkerLayer(markers: markers),
+                    ],
+                  );
+                },
+              ),
+              Positioned(
+                bottom: 110.0,
+                right: 20.0,
+                child: Column(
+                  children: <Widget>[
+                    CupertinoButton(
+                      color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.circular(50.0),
+                      child: _isFetchingLocation
+                          ? const CupertinoActivityIndicator()
+                          : Icon(
+                              CupertinoIcons.location_fill,
+                              color: AppColors.primary.resolveFrom(context),
+                            ),
+                      onPressed: _fetchUserLocation,
+                    ),
+                    const SizedBox(height: 10),
+                    CupertinoButton(
+                      color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.circular(50.0),
+                      child: Icon(CupertinoIcons.add, color: AppColors.primary.resolveFrom(context)),
+                      onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1),
+                    ),
+                    const SizedBox(height: 10),
+                    CupertinoButton(
+                      color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.circular(50.0),
+                      child: Icon(CupertinoIcons.minus, color: AppColors.primary.resolveFrom(context)),
+                      onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1),
                     ),
                   ],
                 ),
-              ),
-            );
-
-            if (_userLocation != null) {
-              markers.add(
-                Marker(
-                  point: _userLocation!,
-                  child: const Icon(
-                    CupertinoIcons.person_solid,
-                    color: CupertinoColors.activeBlue,
-                    size: 30,
-                  ),
-                ),
-              );
-            }
-
-            return FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _userLocation ?? LatLng(40.7667, 29.9167),
-                initialZoom: 13.0,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.seyirservis',
-                ),
-                MarkerLayer(markers: markers),
-              ],
-            );
-          },
-        ),
-        Positioned(
-          bottom: 120.0,
-          right: 20.0,
-          child: Column(
-            children: <Widget>[
-              CupertinoButton(
-                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(16.0), // Daire şeklinde olması için
-                child: _isFetchingLocation
-                    ? const CupertinoActivityIndicator()
-                    : Icon(
-                        CupertinoIcons.location_fill,
-                        color: AppColors.primary.resolveFrom(context),
-                      ),
-                onPressed: _fetchUserLocation,
-              ),
-              const SizedBox(height: 10),
-              CupertinoButton(
-                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(50.0), // Daire şeklinde olması için
-                child: Icon(CupertinoIcons.add, color: AppColors.primary.resolveFrom(context)),
-                onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1),
-              ),
-              const SizedBox(height: 10),
-              CupertinoButton(
-                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(50.0), // Daire şeklinde olması için
-                child: Icon(CupertinoIcons.minus, color: AppColors.primary.resolveFrom(context)),
-                onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1),
               ),
             ],
           ),

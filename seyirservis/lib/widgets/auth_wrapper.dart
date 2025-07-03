@@ -6,6 +6,7 @@ import 'package:seyirservis/screens/giris_sayfasi.dart';
 import 'package:seyirservis/screens/surucu_sayfasi.dart';
 import 'package:seyirservis/screens/yolcu_ana_sayfa.dart'; // Güncellendi
 import 'package:seyirservis/services/auth_service.dart';
+import 'package:seyirservis/screens/surucu_ana_sayfa.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -37,7 +38,7 @@ class AuthWrapper extends StatelessWidget {
               if (roleSnapshot.hasData) {
                 final role = roleSnapshot.data;
                 if (role == 'surucu') {
-                  return const SurucuSayfasi();
+                  return const SurucuAnaSayfa();
                 } else {
                   // Yolcuyu navbar içeren YolcuAnaSayfa'ya yönlendir
                   return const YolcuAnaSayfa(); 

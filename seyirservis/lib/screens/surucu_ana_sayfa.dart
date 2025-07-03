@@ -1,42 +1,55 @@
 import 'package:flutter/cupertino.dart';
 import 'package:seyirservis/screens/surucu_sayfasi.dart';
 import 'package:seyirservis/screens/surucu_profil_sayfasi.dart';
+import 'package:seyirservis/styles/app_colors.dart';
+import 'package:seyirservis/widgets/custom_tab_bar.dart';
 
-class SurucuAnaSayfa extends StatelessWidget {
+class SurucuAnaSayfa extends StatefulWidget {
   const SurucuAnaSayfa({super.key});
 
   @override
+  State<SurucuAnaSayfa> createState() => _SurucuAnaSayfaState();
+}
+
+class _SurucuAnaSayfaState extends State<SurucuAnaSayfa> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    const SurucuSayfasi(),
+    const SurucuProfilSayfasi(),
+  ];
+
+  final List<TabItem> _tabItems = [
+    const TabItem(icon: CupertinoIcons.list_bullet, label: 'Rota Paneli'),
+    const TabItem(icon: CupertinoIcons.person_fill, label: 'Profil'),
+  ];
+
+  @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
-      tabBar: CupertinoTabBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.list_bullet),
-            label: 'Rota Paneli',
+    return CupertinoPageScaffold(
+      backgroundColor: AppColors.scaffoldBackground.resolveFrom(context),
+      child: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _pages,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person_fill),
-            label: 'Profil',
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 25,
+            child: CustomTabBar(
+              items: _tabItems,
+              selectedIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+            ),
           ),
         ],
       ),
-      tabBuilder: (BuildContext context, int index) {
-        // Hangi sekmeye tıklandıysa, o sekmeye ait tam bir sayfa oluşturulur.
-        switch (index) {
-          case 0:
-            return CupertinoTabView(builder: (context) {
-              return const SurucuSayfasi();
-            });
-          case 1:
-            return CupertinoTabView(builder: (context) {
-              return const SurucuProfilSayfasi();
-            });
-          default:
-            return CupertinoTabView(builder: (context) {
-              return const SurucuSayfasi();
-            });
-        }
-      },
     );
   }
 }
