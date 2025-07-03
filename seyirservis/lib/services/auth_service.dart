@@ -42,6 +42,15 @@ class AuthService {
     }
   }
 
+  Future<DocumentSnapshot?> getUserDetails(String uid) async {
+    try {
+      return await _firestore.collection('users').doc(uid).get();
+    } catch (e) {
+      print("Kullanıcı detayları alınamadı: $e");
+      return null;
+    }
+  }
+
   Future<List<QueryDocumentSnapshot>> getPassengers() async {
     try {
       QuerySnapshot snapshot = await _firestore
