@@ -1,5 +1,3 @@
-// lib/services/auth_service.dart
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -34,13 +32,16 @@ class AuthService {
       return null;
     }
   }
-  
+
   Future<DocumentSnapshot?> getUserDetails(String uid) async {
     try {
       return await _firestore.collection('users').doc(uid).get();
     } catch (e) {
       print("Kullanıcı detayları alınamadı: $e");
-      return null;}}}}  // ŞİFRE SIFIRLAMA E-POSTASI GÖNDERME FONKSİYONU - BU KISIM ÖNCEKİ KODLARINIZDA YOKTU!
+      return null;
+    }
+  }
+
   Future<String?> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
