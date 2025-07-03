@@ -42,9 +42,18 @@ class AuthService {
     }
   }
 
-  // TODO: Gelecekte buraya kayıt olma fonksiyonu eklenebilir.
-  // Future<User?> signUpWithEmailAndPassword(String email, String password, String role) async { ... }
-
+  Future<List<QueryDocumentSnapshot>> getPassengers() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'yolcu')
+          .get();
+      return snapshot.docs;
+    } catch (e) {
+      print("Yolcu listesi alınamadı: $e");
+      return []; // Hata durumunda boş liste döndür
+    }
+  }
   // Firebase'den çıkış yapma fonksiyonu
   Future<void> signOut() async {
     await _auth.signOut();

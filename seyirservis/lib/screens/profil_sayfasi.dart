@@ -18,8 +18,43 @@ class _ProfilSayfasiState extends State<ProfilSayfasi> {
   @override
   void initState() {
     super.initState();
-    // Sayfa ilk açıldığında mevcut kullanıcıyı al
     _currentUser = FirebaseAuth.instance.currentUser;
+  }
+
+  // Özel liste bölümünü oluşturan yardımcı metot
+  Widget _buildCustomListSection({
+    required BuildContext context,
+    required String header,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
+            child: Text(
+              header.toUpperCase(),
+              // HATA DÜZELTİLDİ: 'footnote' yerine geçerli bir stil kullanıldı.
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText.resolveFrom(context),
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: Container(
+              color: AppColors.widgetBackground.resolveFrom(context),
+              child: Column(
+                children: children,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -40,51 +75,53 @@ class _ProfilSayfasiState extends State<ProfilSayfasi> {
             child: const Icon(CupertinoIcons.square_arrow_right),
           ),
         ),
-        // Sayfanın geri kalan içeriği
         Expanded(
-          // ListView'ı bir Container ile sararak arka plan rengini belirliyoruz.
-          child: Container(
-            child: ListView(
-              children: [
-                const SizedBox(height: 10),
-                // Kullanıcı Bilgileri Bölümü
-                CupertinoListSection.insetGrouped(
-                  header: const Text('KULLANICI BİLGİLERİ'),
-                  children: <CupertinoListTile>[
-                    CupertinoListTile(
-                      title: const Text('İsim Soyisim'),
-                      additionalInfo: Text(_currentUser?.displayName ?? 'İsim Yok'),
-                      leading: const Icon(CupertinoIcons.person_alt_circle_fill),
+          child: ListView(
+            children: [
+              const SizedBox(height: 20),
+              _buildCustomListSection(
+                context: context,
+                header: 'KULLANICI BİLGİLERİ',
+                children: <Widget>[
+                  CupertinoListTile(
+                    title: const Text('İsim Soyisim'),
+                    additionalInfo: Text(_currentUser?.displayName ?? 'İsim Yok'),
+                    leading: const Icon(CupertinoIcons.person_alt_circle_fill),
+                  ),
+                  // HATA DÜZELTİLDİ: Material 'Divider' yerine 'Container' ile ayırıcı yapıldı.
+                  Padding(
+                    padding: const EdgeInsets.only(left: 58.0),
+                    child: Container(
+                      height: 0.5,
+                      color: CupertinoColors.separator.resolveFrom(context),
                     ),
-                    CupertinoListTile(
-                      title: const Text('E-posta'),
-                      additionalInfo: Text(_currentUser?.email ?? 'E-posta Yok'),
-                      leading: const Icon(CupertinoIcons.mail_solid),
+                  ),
+                  CupertinoListTile(
+                    title: const Text('E-posta'),
+                    additionalInfo: Text(_currentUser?.email ?? 'E-posta Yok'),
+                    leading: const Icon(CupertinoIcons.mail_solid),
+                  ),
+                ],
+              ),
+              _buildCustomListSection(
+                context: context,
+                header: 'SERVİS AYARLARI',
+                children: <Widget>[
+                  CupertinoListTile(
+                    title: const Text('Servise Alınma Konumum'),
+                    additionalInfo: const Text('Henüz ayarlanmadı'),
+                    leading: Icon(
+                      CupertinoIcons.location_solid,
+                      color: AppColors.primary.resolveFrom(context),
                     ),
-                  ],
-                ),
-                // Konum Ayarları Bölümü
-                CupertinoListSection.insetGrouped(
-                  header: const Text('SERVİS AYARLARI'),
-                  children: <CupertinoListTile>[
-                    CupertinoListTile.notched(
-                      title: const Text('Servise Alınma Konumum'),
-                      // TODO: Buraya Firestore'dan gelen adres yazılacak
-                      additionalInfo: const Text('Henüz ayarlanmadı'),
-                      leading: Icon(
-                        CupertinoIcons.location_solid,
-                        color: AppColors.primary.resolveFrom(context),
-                      ),
-                      trailing: const CupertinoListTileChevron(),
-                      onTap: () {
-                        // TODO: Harita üzerinden konum seçme sayfası açılacak
-                        print('Konum seçme sayfasına git');
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    trailing: const CupertinoListTileChevron(),
+                    onTap: () {
+                      print('Konum seçme sayfasına git');
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
