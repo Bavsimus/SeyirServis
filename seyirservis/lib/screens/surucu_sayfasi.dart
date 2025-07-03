@@ -15,8 +15,6 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
 
   @override
   Widget build(BuildContext context) {
-    // Sayfa artık bir tab içinde gösterildiği için, kendi Scaffold'u yerine
-    // içeriği ve üst navigasyon barını bir Column içinde döndürüyoruz.
     return Column(
       children: [
         const CupertinoNavigationBar(
@@ -38,12 +36,10 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
 
               final passengers = snapshot.data!;
               
-              // ListView'ı tüm içeriği kapsayacak şekilde güncelliyoruz.
               return ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: [
                   const SizedBox(height: 20),
-                  // Başlık
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
                     child: Text(
@@ -54,7 +50,6 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                       ),
                     ),
                   ),
-                  // Yolcu listesi
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.widgetBackground.resolveFrom(context),
@@ -66,8 +61,14 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                         children: passengers.map((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
-                          final attendanceStatus ='Gelecek';
                           
+                          // --- DEĞİŞİKLİK BURADA ---
+                          // Firestore'dan 'isAttending' bool değerini oku
+                          final bool isAttending = data['isAttending'] as bool? ?? false; // Varsayılan: gelmiyor
+                          
+                          final String attendanceStatus = isAttending ? 'Gelecek' : 'Gelmeyecek';
+                          final Color statusColor = isAttending ? CupertinoColors.activeGreen : CupertinoColors.systemRed;
+
                           return CupertinoListTile(
                             title: Text(
                               passengerName,
@@ -79,15 +80,14 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                             ),
                             trailing: Text(
                               attendanceStatus,
-                              style: const TextStyle(color: CupertinoColors.activeGreen),
+                              style: TextStyle(color: statusColor),
                             ),
                           );
                         }).toList(),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30), // Butonla liste arasına boşluk
-                  // Rota oluşturma butonu artık ListView'ın içinde
+                  const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
                     child: CupertinoButton.filled(
@@ -97,7 +97,6 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                       },
                     ),
                   ),
-                  // EN ÖNEMLİ KISIM: Alttaki navigasyon barı için boşluk
                   const SizedBox(height: 120),
                 ],
               );
