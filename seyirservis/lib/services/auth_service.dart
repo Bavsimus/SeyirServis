@@ -1,5 +1,4 @@
-// Bu dosyayı lib/services/auth_service.dart yoluna oluşturun.
-// Bu servis, tüm Firebase kimlik doğrulama ve veritabanı işlemlerini tek bir yerde toplar.
+// lib/services/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,28 +16,38 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException catch (e) {
-      // Hataları yakalayıp null döndürüyoruz, bu sayede arayüzde
-      // kullanıcıya temiz bir mesaj gösterebiliriz.
       print('Giriş Hatası: ${e.message}');
       return null;
     }
   }
 
   // Kullanıcının rolünü Firestore'dan çekme fonksiyonu
-  // NOT: Firestore'da "users" adında bir koleksiyonunuz ve içinde her kullanıcı
-  // için 'role' alanı olan dokümanlarınız olmalı. (Örn: { 'role': 'surucu' })
   Future<String?> getUserRole(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists && doc.data() != null) {
-        // 'role' alanını oku ve string olarak döndür.
         return (doc.data() as Map<String, dynamic>)['role'];
       }
-      // Doküman yoksa veya boşsa null döndür.
       return null;
     } catch (e) {
       print('Rol Alınamadı: $e');
       return null;
+    }
+  }
+  
+  Future<DocumentSnapshot?> getUserDetails(String uid) async {
+    try {
+      return await _firestore.collection('users').doc(uid).get();
+    } catch (e) {
+      print("Kullanıcı detayları alınamadı: $e");
+      return null;}}}}  // ŞİFRE SIFIRLAMA E-POSTASI GÖNDERME FONKSİYONU - BU KISIM ÖNCEKİ KODLARINIZDA YOKTU!
+  Future<String?> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return null; // Başarılıysa null döndür
+    } on FirebaseAuthException catch (e) {
+      print('Şifre Sıfırlama Hatası: ${e.message}');
+      return e.message; // Hata mesajını döndür
     }
   }
 
@@ -54,6 +63,7 @@ class AuthService {
       return []; // Hata durumunda boş liste döndür
     }
   }
+
   // Firebase'den çıkış yapma fonksiyonu
   Future<void> signOut() async {
     await _auth.signOut();

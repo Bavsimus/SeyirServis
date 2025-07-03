@@ -59,9 +59,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const CupertinoNavigationBar(
-          middle: Text('Servis Haritası'),
-        ),
         Expanded(
           child: Stack(
             children: [

@@ -30,7 +30,7 @@ class CustomTabBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.95),
-        borderRadius: BorderRadius.circular(50.0),
+        borderRadius: BorderRadius.circular(32.0),
         boxShadow: [
           BoxShadow(
             color: isDarkMode ? CupertinoColors.black.withOpacity(0.4) : CupertinoColors.systemGrey.withOpacity(0.3),

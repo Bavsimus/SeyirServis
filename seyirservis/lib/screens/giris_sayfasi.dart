@@ -81,6 +81,77 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
     }
   }
 
+  // YENİ EKLENEN KOD: Şifremi Unuttum Metodu
+  void _sifremiUnuttum() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Şifre Sıfırlama'),
+        content: Column( // İçeriği bir Column içine alıyoruz
+          mainAxisSize: MainAxisSize.min, // Sadece içeriği kadar yer kaplamasını sağlıyoruz
+          children: [
+            const Text('Şifrenizi sıfırlamak için e-posta adresinizi girin.'),
+            const SizedBox(height: 10), // Metin ile TextField arasına boşluk
+            CupertinoTextField(
+              controller: _emailController, // Mevcut email controller'ı kullanıyoruz
+              placeholder: 'E-posta',
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              decoration: BoxDecoration( // iOS stiline uygun minimal dekorasyon
+                border: Border.all(color: CupertinoColors.systemGrey),
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+              padding: const EdgeInsets.all(10.0),
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('İptal'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            child: const Text('Gönder'),
+            onPressed: () async {
+              Navigator.of(context).pop(); // Diyaloğu kapatıyoruz
+
+              if (_emailController.text.isEmpty) {
+                _showErrorDialog('Lütfen e-posta adresinizi girin.');
+                return;
+              }
+
+              setState(() { _isLoading = true; });
+
+              // AuthService instance'ımızı kullanarak yeni eklediğimiz metodu çağırıyoruz
+              String? error = await _authService.sendPasswordResetEmail(_emailController.text.trim());
+
+              setState(() { _isLoading = false; });
+
+              if (error == null) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: const Text('Başarılı'),
+                    content: Text('${_emailController.text} adresine şifre sıfırlama bağlantısı gönderildi. Lütfen e-postanızı kontrol edin.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        isDefaultAction: true,
+                        child: const Text('Tamam'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                _showErrorDialog('Şifre sıfırlama hatası: $error');
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Tekrarlanan kodu önlemek için ortak bir stil tanımlıyoruz.
@@ -92,7 +163,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('SeyirServis Giriş'),
+        middle: Text('SeyirServis Girişş'),
       ),
       child: SafeArea(
         child: Padding(
@@ -129,9 +200,18 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
               _isLoading
                   ? const Center(child: CupertinoActivityIndicator())
                   : CupertinoButton.filled(
-                      onPressed: _girisYap,
-                      child: const Text('Giriş Yap'),
-                    ),
+                onPressed: _girisYap,
+                child: const Text('Giriş Yap'),
+              ),
+              // YENİ EKLENEN KOD: Şifremi Unuttum Butonu
+              const SizedBox(height: 12), // Butonlar arasına boşluk
+              CupertinoButton(
+                onPressed: _sifremiUnuttum, // Yukarıda eklediğimiz metodu çağırıyoruz
+                child: Text(
+                  'Şifremi Unuttum?',
+                  style: TextStyle(color: AppColors.secondaryText.resolveFrom(context)),
+                ),
+              ),
             ],
           ),
         ),

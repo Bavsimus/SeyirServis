@@ -66,7 +66,7 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                         children: passengers.map((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
-                          final attendanceStatus = 'Gelecek';
+                          final attendanceStatus ='Gelecek';
                           
                           return CupertinoListTile(
                             title: Text(
