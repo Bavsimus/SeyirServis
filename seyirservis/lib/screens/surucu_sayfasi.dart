@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuth importu eklendi
 import 'package:flutter/cupertino.dart';
 import '../services/auth_service.dart';
 import '../styles/app_colors.dart';
@@ -12,8 +13,71 @@ class SurucuSayfasi extends StatefulWidget {
 
 class _SurucuSayfasiState extends State<SurucuSayfasi> {
   final AuthService _authService = AuthService();
-  // YENİ: Switch'in durumunu tutacak state değişkeni
-  bool _isServiceActive = true; 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore instance'ı eklendi
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Auth instance'ı eklendi
+
+  // DEĞİŞİKLİK: Dinlenecek araç dokümanının stream'ini tutacak state değişkeni
+  Stream<DocumentSnapshot>? _vehicleStream;
+  String? _activeVehicleId; // Güncelleme işlemi için araç ID'sini saklayacağız
+
+  @override
+  void initState() {
+    super.initState();
+    // DEĞİŞİKLİK: Sayfa açıldığında stream'i başlatan metodu çağır
+    _initializeVehicleStream();
+  }
+
+  // YENİ METOT: Sürücünün aktif aracını bulup stream'i başlatan metot
+  Future<void> _initializeVehicleStream() async {
+    User? currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      print("Sürücü girişi yapılmamış.");
+      return;
+    }
+
+    try {
+      // 1. Sürücünün kendi dokümanını al
+      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        // 2. Sürücünün dokümanından 'activeVehicle' alanını oku
+        final vehicleId = userDoc.data()!['activeVehicle'] as String?;
+
+        if (vehicleId != null) {
+          if (mounted) {
+            setState(() {
+              _activeVehicleId = vehicleId;
+              // 3. Bulunan ID ile 'services' koleksiyonundaki aracı dinlemeye başla
+              _vehicleStream = _firestore.collection('services').doc(vehicleId).snapshots();
+              print("Dinlenen araç ID: $vehicleId");
+            });
+          }
+        } else {
+          print("Bu sürücüye atanmış aktif bir araç bulunamadı.");
+        }
+      }
+    } catch (e) {
+      print("Araç stream'i başlatılırken hata oluştu: $e");
+    }
+  }
+
+  // YENİ METOT: Firestore'daki 'isActive' değerini güncelleyen metot
+  Future<void> _updateVehicleStatus(bool newStatus) async {
+    if (_activeVehicleId == null) {
+      print("Güncellenecek araç ID'si bulunamadı.");
+      return;
+    }
+    try {
+      await _firestore.collection('services').doc(_activeVehicleId!).update({
+        'isActive': newStatus,
+        'last_updated': FieldValue.serverTimestamp(), // Son güncelleme zamanını da ekleyelim
+      });
+      print("Araç durumu başarıyla güncellendi: $newStatus");
+    } catch (e) {
+      print("Araç durumu güncellenirken bir hata oluştu: $e");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +106,6 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: [
                   const SizedBox(height: 20),
-
-                  // --- YENİ EKLENEN BÖLÜM BAŞLANGICI ---
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
                     child: Text(
@@ -54,36 +116,61 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                       ),
                     ),
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.widgetBackground.resolveFrom(context),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: CupertinoListTile(
-                        title: Text(
-                          'Servis Aktif',
-                           style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
+                  // DEĞİŞİKLİK: Switch bileşeni artık StreamBuilder ile sarmalandı
+                  StreamBuilder<DocumentSnapshot>(
+                    stream: _vehicleStream,
+                    builder: (context, vehicleSnapshot) {
+                      // Yükleniyor durumu
+                      if (vehicleSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CupertinoActivityIndicator());
+                      }
+                      // Hata veya veri yok durumu
+                      if (!vehicleSnapshot.hasData || !vehicleSnapshot.data!.exists) {
+                         return Container(
+                           decoration: BoxDecoration(
+                             color: AppColors.widgetBackground.resolveFrom(context),
+                             borderRadius: BorderRadius.circular(12.0),
+                           ),
+                           child: ClipRRect(
+                             borderRadius: BorderRadius.circular(12.0),
+                             child: const CupertinoListTile(
+                               title: Text('Araç durumu yüklenemedi'),
+                               trailing: Icon(CupertinoIcons.exclamationmark_circle),
+                             ),
+                           ),
+                         );
+                      }
+                      
+                      // Veri başarıyla geldi, 'isActive' alanını oku
+                      final vehicleData = vehicleSnapshot.data!.data() as Map<String, dynamic>;
+                      final bool isActive = vehicleData['isActive'] ?? false; // Varsayılan değer false
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.widgetBackground.resolveFrom(context),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
-                        trailing: CupertinoSwitch(
-                          value: _isServiceActive,
-                          activeColor: CupertinoColors.activeGreen,
-                          onChanged: (bool value) {
-                            setState(() {
-                              _isServiceActive = value;
-                              // Konsola durumu yazdırma (opsiyonel)
-                              print('Servis durumu şimdi: ${_isServiceActive ? "Aktif" : "Pasif"}');
-                            });
-                          },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: CupertinoListTile(
+                            title: Text(
+                              'Servis Aktif',
+                              style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
+                            ),
+                            trailing: CupertinoSwitch(
+                              value: isActive, // Değer Firestore'dan geliyor
+                              activeColor: CupertinoColors.activeGreen,
+                              onChanged: (bool value) {
+                                // Değişiklik olduğunda Firestore'u güncelle
+                                _updateVehicleStatus(value);
+                              },
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 20),
-                  // --- YENİ EKLENEN BÖLÜM SONU ---
-
-
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
                     child: Text(
@@ -105,9 +192,7 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                         children: passengers.map((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
-
-                          final bool isAttending = data['isAttending'] as bool? ?? false; 
-
+                          final bool isAttending = data['isAttending'] as bool? ?? false;
                           final String attendanceStatus = isAttending ? 'Gelecek' : 'Gelmeyecek';
                           final Color statusColor = isAttending ? CupertinoColors.activeGreen : CupertinoColors.systemRed;
 
@@ -133,8 +218,6 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                   SizedBox(
                     width: double.infinity,
                     child: CupertinoButton.filled(
-                      // Switch'in durumuna göre butonu aktif/pasif yapabilirsiniz
-                      // onPressed: _isServiceActive ? () { ... } : null,
                       child: const Text('Rotayı Oluştur ve Başlat'),
                       onPressed: () {
                         print('Rota oluşturma işlemi başlatıldı.');
@@ -150,4 +233,4 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
       ],
     );
   }
-}
+} 
