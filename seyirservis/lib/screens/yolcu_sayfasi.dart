@@ -29,6 +29,36 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
     _fetchAttendanceStatus(); // Katılım durumunu çekmek için güncellendi
   }
 
+  // YENİ FONKSİYON: Araç işaretleyicisini oluşturan widget. Kod tekrarını önler.
+  Widget _buildVehicleMarker(String plate, Color iconColor, Color borderColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          child: Text(
+            plate,
+            style: TextStyle(
+              color: AppColors.primaryText.resolveFrom(context),
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+        ),
+        Icon(
+          CupertinoIcons.bus,
+          color: iconColor,
+          size: 35,
+        ),
+      ],
+    );
+  }
+
   Future<void> _fetchUserLocation() async {
     if (_isFetchingLocation) return;
     setState(() { _isFetchingLocation = true; });
@@ -60,7 +90,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
     }
   }
 
-  // Yolcunun servis katılım durumunu Firestore'dan çeker (isAttending kullanıldı)
   Future<void> _fetchAttendanceStatus() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -76,7 +105,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
       DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data() as Map<String, dynamic>;
-        // 'isAttending' alanını kullan
         final bool? isAttending = data['isAttending'];
         if (mounted) {
           setState(() {
@@ -85,7 +113,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
             } else if (isAttending == false) {
               _attendanceStatusText = 'Bugün Servise Katılmayacağım';
             } else {
-              // Alan yoksa veya null ise varsayılan durum
               _attendanceStatusText = 'Katılım Durumu Bilinmiyor';
             }
           });
@@ -107,7 +134,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
     }
   }
 
-  // Servis katılım durumunu değiştiren metot (isAttending kullanıldı)
   Future<void> _toggleAttendance(bool willAttend) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -123,7 +149,7 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
 
     try {
       await _firestore.collection('users').doc(user.uid).set(
-        {'isAttending': willAttend}, // 'isAttending' alanını güncelliyoruz
+        {'isAttending': willAttend},
         SetOptions(merge: true),
       );
       if (mounted) {
@@ -149,7 +175,6 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
     }
   }
 
-  // Uyarı diyaloğu gösterme metodu
   void _showAlertDialog(String title, String message) {
     showCupertinoDialog(
       context: context,
@@ -174,59 +199,41 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
         Expanded(
           child: Stack(
             children: [
-              StreamBuilder<DocumentSnapshot>(
+              // DEĞİŞİKLİK: StreamBuilder artık tek bir dökümanı değil, koleksiyonun tamamını dinliyor.
+              StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('services')
-                    .doc('service_vehicle_1')
                     .snapshots(),
                 builder: (context, snapshot) {
-                  LatLng serviceLocation = const LatLng(40.7700, 29.9200); // Varsayılan Kocaeli
-                  String servicePlate = "Yükleniyor...";
+                  final List<Marker> markers = [];
 
-                  if (snapshot.hasData && snapshot.data!.exists) {
-                    final data = snapshot.data!.data() as Map<String, dynamic>;
-                    final geoPoint = data['location'] as GeoPoint?;
-                    if (geoPoint != null) {
-                      serviceLocation = LatLng(geoPoint.latitude, geoPoint.longitude);
+                  if (snapshot.hasData) {
+                    // Gelen tüm dökümanlar (araçlar) için bir döngü oluştur.
+                    for (var doc in snapshot.data!.docs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final geoPoint = data['location'] as GeoPoint?;
+                      
+                      if (geoPoint != null) {
+                        final serviceLocation = LatLng(geoPoint.latitude, geoPoint.longitude);
+                        final servicePlate = data['plate'] as String? ?? "Plaka Yok";
+
+                        markers.add(
+                          Marker(
+                            point: serviceLocation,
+                            width: 80,
+                            height: 80,
+                            child: _buildVehicleMarker(
+                              servicePlate,
+                              AppColors.primary.resolveFrom(context), // Ana renk
+                              AppColors.primaryText.resolveFrom(context)
+                            ),
+                          ),
+                        );
+                      }
                     }
-                    servicePlate = data['plate'] as String? ?? "Plaka Yok";
                   }
 
-                  final List<Marker> markers = [];
-                  markers.add(
-                    Marker(
-                      point: serviceLocation,
-                      width: 80,
-                      height: 80,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.primaryText.resolveFrom(context), width: 1),
-                            ),
-                            child: Text(
-                              servicePlate,
-                              style: TextStyle(
-                                color: AppColors.primaryText.resolveFrom(context),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            CupertinoIcons.bus,
-                            color: AppColors.primary.resolveFrom(context),
-                            size: 35,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-
+                  // Kullanıcının kendi konumunu eklemeye devam et
                   if (_userLocation != null) {
                     markers.add(
                       Marker(
@@ -256,22 +263,19 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
                   );
                 },
               ),
-              // Yükleme göstergesi
               if (_isLoading)
                 const Center(
                   child: CupertinoActivityIndicator(radius: 20.0),
                 ),
-              // Harita kontrol butonları ve katılım durumu butonlarını içeren tek Positioned widget'ı
               Positioned(
-                bottom: 70.0, // Alt navigasyon barının hemen üzerinde
+                bottom: 70.0,
                 right: 20.0,
-                left: 20.0, // Her iki taraftan boşluk bırakarak ortalamak için
+                left: 20.0,
                 child: SafeArea(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end, // Sağ tarafa yaslamak için
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Mevcut Durum metni
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -282,54 +286,50 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
                         child: Text(
                           'Durum: $_attendanceStatusText',
                           style: TextStyle(
-                            fontSize: 12, // Metin boyutunu küçült
+                            fontSize: 12,
                             color: AppColors.primaryText.resolveFrom(context),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10), // Metin ile butonlar arasına boşluk
-
+                      const SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end, // Sağ tarafa yaslamak için
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // "Bugün Servise Katılmayacağım" butonu
-                          Expanded( // Genişliği dinamik olarak ayarla
+                          Expanded(
                             child: CupertinoButton(
                               color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // Paddingi küçült
-                              borderRadius: BorderRadius.circular(10), // Köşeleri yuvarlak yap
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              borderRadius: BorderRadius.circular(10),
                               onPressed: _isLoading ? null : () => _toggleAttendance(false),
                               child: Text(
-                                'Katılmayacağım', // Metni kısalt
+                                'Katılmayacağım',
                                 style: TextStyle(
-                                  fontSize: 12, // Yazı boyutunu küçült
+                                  fontSize: 12,
                                   color: AppColors.primary.resolveFrom(context),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8), // Butonlar arasına boşluk
-                          // "Bugün Servise Katılacağım" butonu
-                          Expanded( // Genişliği dinamik olarak ayarla
+                          const SizedBox(width: 8),
+                          Expanded(
                             child: CupertinoButton(
-                              color: AppColors.primary.resolveFrom(context).withOpacity(0.8), // Renk değiştirebilirsiniz
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // Paddingi küçült
-                              borderRadius: BorderRadius.circular(10), // Köşeleri yuvarlak yap
+                              color: AppColors.primary.resolveFrom(context).withOpacity(0.8),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              borderRadius: BorderRadius.circular(10),
                               onPressed: _isLoading ? null : () => _toggleAttendance(true),
                               child: const Text(
-                                'Katılacağım', // Metni kısalt
+                                'Katılacağım',
                                 style: TextStyle(
-                                  fontSize: 12, // Yazı boyutunu küçült
-                                  color: CupertinoColors.white, // Beyaz metin
+                                  fontSize: 12,
+                                  color: CupertinoColors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10), // Katılım butonları ile harita kontrol butonları arasına boşluk
-                          // Harita kontrol butonları
+                          const SizedBox(width: 10),
                           Column(
                             children: <Widget>[
                               CupertinoButton(
