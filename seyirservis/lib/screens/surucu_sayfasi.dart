@@ -12,6 +12,8 @@ class SurucuSayfasi extends StatefulWidget {
 
 class _SurucuSayfasiState extends State<SurucuSayfasi> {
   final AuthService _authService = AuthService();
+  // YENİ: Switch'in durumunu tutacak state değişkeni
+  bool _isServiceActive = true; 
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +37,53 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
               }
 
               final passengers = snapshot.data!;
-              
+
               return ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: [
                   const SizedBox(height: 20),
+
+                  // --- YENİ EKLENEN BÖLÜM BAŞLANGICI ---
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
+                    child: Text(
+                      'SERVİS DURUMU',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.secondaryText.resolveFrom(context),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.widgetBackground.resolveFrom(context),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12.0),
+                      child: CupertinoListTile(
+                        title: Text(
+                          'Servis Aktif',
+                           style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
+                        ),
+                        trailing: CupertinoSwitch(
+                          value: _isServiceActive,
+                          activeColor: CupertinoColors.activeGreen,
+                          onChanged: (bool value) {
+                            setState(() {
+                              _isServiceActive = value;
+                              // Konsola durumu yazdırma (opsiyonel)
+                              print('Servis durumu şimdi: ${_isServiceActive ? "Aktif" : "Pasif"}');
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // --- YENİ EKLENEN BÖLÜM SONU ---
+
+
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
                     child: Text(
@@ -61,11 +105,9 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                         children: passengers.map((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
-                          
-                          // --- DEĞİŞİKLİK BURADA ---
-                          // Firestore'dan 'isAttending' bool değerini oku
-                          final bool isAttending = data['isAttending'] as bool? ?? false; // Varsayılan: gelmiyor
-                          
+
+                          final bool isAttending = data['isAttending'] as bool? ?? false; 
+
                           final String attendanceStatus = isAttending ? 'Gelecek' : 'Gelmeyecek';
                           final Color statusColor = isAttending ? CupertinoColors.activeGreen : CupertinoColors.systemRed;
 
@@ -91,6 +133,8 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
                   SizedBox(
                     width: double.infinity,
                     child: CupertinoButton.filled(
+                      // Switch'in durumuna göre butonu aktif/pasif yapabilirsiniz
+                      // onPressed: _isServiceActive ? () { ... } : null,
                       child: const Text('Rotayı Oluştur ve Başlat'),
                       onPressed: () {
                         print('Rota oluşturma işlemi başlatıldı.');
