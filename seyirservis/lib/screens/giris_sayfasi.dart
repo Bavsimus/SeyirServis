@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import '../screens/surucu_sayfasi.dart';
-import '../screens/yolcu_sayfasi.dart';
+import '../screens/surucu_ana_sayfa.dart'; // SurucuAnaSayfa'yı import edin
+import '../screens/yolcu_ana_sayfa.dart'; // YolcuAnaSayfa'yı import edin
 import '../services/auth_service.dart';
-import '../styles/app_colors.dart'; // Renkleri kullanmak için import edildi
+import '../styles/app_colors.dart';
 
 class GirisSayfasi extends StatefulWidget {
   const GirisSayfasi({super.key});
@@ -59,12 +59,14 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
     if (user != null) {
       final role = await _authService.getUserRole(user.uid);
       if (role == 'surucu') {
+        // DEĞİŞİKLİK: Doğrudan SurucuAnaSayfa'ya yönlendirme yapılıyor
         Navigator.of(context).pushReplacement(
-          CupertinoPageRoute(builder: (context) => const SurucuSayfasi()),
+          CupertinoPageRoute(builder: (context) => const SurucuAnaSayfa()),
         );
       } else if (role == 'yolcu') {
+        // DEĞİŞİKLİK: Doğrudan YolcuAnaSayfa'ya yönlendirme yapılıyor
         Navigator.of(context).pushReplacement(
-          CupertinoPageRoute(builder: (context) => const YolcuSayfasi()),
+          CupertinoPageRoute(builder: (context) => const YolcuAnaSayfa()),
         );
       } else {
         _showErrorDialog('Kullanıcı rolü bulunamadı veya geçersiz.');
@@ -87,17 +89,17 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Şifre Sıfırlama'),
-        content: Column( // İçeriği bir Column içine alıyoruz
-          mainAxisSize: MainAxisSize.min, // Sadece içeriği kadar yer kaplamasını sağlıyoruz
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Şifrenizi sıfırlamak için e-posta adresinizi girin.'),
-            const SizedBox(height: 10), // Metin ile TextField arasına boşluk
+            const SizedBox(height: 10),
             CupertinoTextField(
-              controller: _emailController, // Mevcut email controller'ı kullanıyoruz
+              controller: _emailController,
               placeholder: 'E-posta',
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
-              decoration: BoxDecoration( // iOS stiline uygun minimal dekorasyon
+              decoration: BoxDecoration(
                 border: Border.all(color: CupertinoColors.systemGrey),
                 borderRadius: BorderRadius.circular(5.0),
               ),
@@ -113,7 +115,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
           CupertinoDialogAction(
             child: const Text('Gönder'),
             onPressed: () async {
-              Navigator.of(context).pop(); // Diyaloğu kapatıyoruz
+              Navigator.of(context).pop();
 
               if (_emailController.text.isEmpty) {
                 _showErrorDialog('Lütfen e-posta adresinizi girin.');
@@ -122,7 +124,6 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
 
               setState(() { _isLoading = true; });
 
-              // AuthService instance'ımızı kullanarak yeni eklediğimiz metodu çağırıyoruz
               String? error = await _authService.sendPasswordResetEmail(_emailController.text.trim());
 
               setState(() { _isLoading = false; });
@@ -154,9 +155,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
 
   @override
   Widget build(BuildContext context) {
-    // Tekrarlanan kodu önlemek için ortak bir stil tanımlıyoruz.
     final BoxDecoration fieldDecoration = BoxDecoration(
-      // Dinamik rengi mevcut tema moduna göre çözümlüyoruz.
       color: AppColors.widgetBackground.resolveFrom(context),
       borderRadius: BorderRadius.circular(8.0),
     );
@@ -173,7 +172,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CupertinoTextField(
-                decoration: fieldDecoration, // Stili burada uyguluyoruz
+                decoration: fieldDecoration,
                 controller: _emailController,
                 placeholder: 'E-posta',
                 keyboardType: TextInputType.emailAddress,
@@ -186,7 +185,7 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
               ),
               const SizedBox(height: 12),
               CupertinoTextField(
-                decoration: fieldDecoration, // Stili burada uyguluyoruz
+                decoration: fieldDecoration,
                 controller: _passwordController,
                 placeholder: 'Şifre',
                 obscureText: true,
@@ -203,10 +202,9 @@ class _GirisSayfasiState extends State<GirisSayfasi> {
                 onPressed: _girisYap,
                 child: const Text('Giriş Yap'),
               ),
-              // YENİ EKLENEN KOD: Şifremi Unuttum Butonu
-              const SizedBox(height: 12), // Butonlar arasına boşluk
+              const SizedBox(height: 12),
               CupertinoButton(
-                onPressed: _sifremiUnuttum, // Yukarıda eklediğimiz metodu çağırıyoruz
+                onPressed: _sifremiUnuttum,
                 child: Text(
                   'Şifremi Unuttum?',
                   style: TextStyle(color: AppColors.secondaryText.resolveFrom(context)),
