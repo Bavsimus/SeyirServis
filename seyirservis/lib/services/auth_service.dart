@@ -65,6 +65,14 @@ class AuthService {
       return []; // Hata durumunda boş liste döndür
     }
   }
+  
+  Stream<QuerySnapshot> getPassengersStream() {
+  // .snapshots() metodu Stream döndürür ve koleksiyonu canlı dinler
+  return _firestore
+      .collection('users')
+      .where('role', isEqualTo: 'yolcu')
+      .snapshots();
+  }
 
   // Firebase'den çıkış yapma fonksiyonu
   Future<void> signOut() async {

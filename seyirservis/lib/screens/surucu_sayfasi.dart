@@ -79,158 +79,172 @@ class _SurucuSayfasiState extends State<SurucuSayfasi> {
   }
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const CupertinoNavigationBar(
-          middle: Text('Rota Paneli'),
-        ),
-        Expanded(
-          child: FutureBuilder<List<QueryDocumentSnapshot>>(
-            future: _authService.getPassengers(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CupertinoActivityIndicator());
-              }
-              if (snapshot.hasError) {
-                return const Center(child: Text('Yolcular yüklenemedi.'));
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('Sisteme kayıtlı yolcu bulunamadı.'));
-              }
+  // surucu_sayfasi.dart
 
-              final passengers = snapshot.data!;
+@override
+Widget build(BuildContext context) {
+  // Ana widget artık bir Column.
+  return Column(
+    children: [
+      const CupertinoNavigationBar(
+        middle: Text('Rota Paneli'),
+      ),
 
-              return ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                children: [
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
-                    child: Text(
-                      'SERVİS DURUMU',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.secondaryText.resolveFrom(context),
-                      ),
-                    ),
-                  ),
-                  // DEĞİŞİKLİK: Switch bileşeni artık StreamBuilder ile sarmalandı
-                  StreamBuilder<DocumentSnapshot>(
-                    stream: _vehicleStream,
-                    builder: (context, vehicleSnapshot) {
-                      // Yükleniyor durumu
-                      if (vehicleSnapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CupertinoActivityIndicator());
-                      }
-                      // Hata veya veri yok durumu
-                      if (!vehicleSnapshot.hasData || !vehicleSnapshot.data!.exists) {
-                         return Container(
-                           decoration: BoxDecoration(
-                             color: AppColors.widgetBackground.resolveFrom(context),
-                             borderRadius: BorderRadius.circular(12.0),
-                           ),
-                           child: ClipRRect(
-                             borderRadius: BorderRadius.circular(12.0),
-                             child: const CupertinoListTile(
-                               title: Text('Araç durumu yüklenemedi'),
-                               trailing: Icon(CupertinoIcons.exclamationmark_circle),
-                             ),
-                           ),
-                         );
-                      }
-                      
-                      // Veri başarıyla geldi, 'isActive' alanını oku
-                      final vehicleData = vehicleSnapshot.data!.data() as Map<String, dynamic>;
-                      final bool isActive = vehicleData['isActive'] ?? false; // Varsayılan değer false
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.widgetBackground.resolveFrom(context),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: CupertinoListTile(
-                            title: Text(
-                              'Servis Aktif',
-                              style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
-                            ),
-                            trailing: CupertinoSwitch(
-                              value: isActive, // Değer Firestore'dan geliyor
-                              activeColor: CupertinoColors.activeGreen,
-                              onChanged: (bool value) {
-                                // Değişiklik olduğunda Firestore'u güncelle
-                                _updateVehicleStatus(value);
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
-                    child: Text(
-                      'BUGÜNÜN YOLCULARI (${passengers.length} KİŞİ)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.secondaryText.resolveFrom(context),
-                      ),
-                    ),
-                  ),
-                  Container(
+      // SERVİS DURUMU BÖLÜMÜ (StreamBuilder)
+      // Bu bölüm artık FutureBuilder'ın içinde değil, bağımsız.
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
+              child: Text(
+                'SERVİS DURUMU',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondaryText.resolveFrom(context),
+                ),
+              ),
+            ),
+            StreamBuilder<DocumentSnapshot>(
+              stream: _vehicleStream,
+              builder: (context, vehicleSnapshot) {
+                if (vehicleSnapshot.connectionState == ConnectionState.waiting && _vehicleStream != null) {
+                  return const Center(child: CupertinoActivityIndicator());
+                }
+                if (!vehicleSnapshot.hasData || !vehicleSnapshot.data!.exists) {
+                  return Container(
                     decoration: BoxDecoration(
                       color: AppColors.widgetBackground.resolveFrom(context),
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12.0),
-                      child: Column(
-                        children: passengers.map((doc) {
-                          final data = doc.data() as Map<String, dynamic>;
-                          final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
-                          final bool isAttending = data['isAttending'] as bool? ?? false;
-                          final String attendanceStatus = isAttending ? 'Gelecek' : 'Gelmeyecek';
-                          final Color statusColor = isAttending ? CupertinoColors.activeGreen : CupertinoColors.systemRed;
-
-                          return CupertinoListTile(
-                            title: Text(
-                              passengerName,
-                              style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
-                            ),
-                            leading: Icon(
-                              CupertinoIcons.person_alt,
-                              color: AppColors.secondaryText.resolveFrom(context),
-                            ),
-                            trailing: Text(
-                              attendanceStatus,
-                              style: TextStyle(color: statusColor),
-                            ),
-                          );
-                        }).toList(),
+                      child: const CupertinoListTile(
+                        title: Text('Araç durumu yüklenemedi'),
+                        trailing: Icon(CupertinoIcons.exclamationmark_circle),
+                      ),
+                    ),
+                  );
+                }
+                final vehicleData = vehicleSnapshot.data!.data() as Map<String, dynamic>;
+                final bool isActive = vehicleData['isActive'] ?? false;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.widgetBackground.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: CupertinoListTile(
+                      title: Text(
+                        'Servis Aktif',
+                        style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
+                      ),
+                      trailing: CupertinoSwitch(
+                        value: isActive,
+                        activeColor: CupertinoColors.activeGreen,
+                        onChanged: (bool value) {
+                          _updateVehicleStatus(value);
+                        },
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    child: CupertinoButton.filled(
-                      child: const Text('Rotayı Oluştur ve Başlat'),
-                      onPressed: () {
-                        print('Rota oluşturma işlemi başlatıldı.');
-                      },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      
+      // YOLCU LİSTESİ BÖLÜMÜ (FutureBuilder)
+      // Bu bölüm artık Expanded ile sarılarak kalan tüm alanı kaplıyor.
+      // surucu_sayfasi.dart - Expanded içindeki bölümü bu şekilde değiştirin
+
+      Expanded(
+        // DEĞİŞİKLİK: FutureBuilder yerine StreamBuilder kullanıyoruz.
+        child: StreamBuilder<QuerySnapshot>( 
+          // DEĞİŞİKLİK: Yeni stream metodumuzu çağırıyoruz.
+          stream: _authService.getPassengersStream(), 
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Yolcular yüklenemedi.'));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Sisteme kayıtlı yolcu bulunamadı.'));
+            }
+            
+            // DEĞİŞİKLİK: Veriyi snapshot.data.docs'tan alıyoruz.
+            final passengers = snapshot.data!.docs; 
+
+            return ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
+                  child: Text(
+                    'BUGÜNÜN YOLCULARI (${passengers.length} KİŞİ)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondaryText.resolveFrom(context),
                     ),
                   ),
-                  const SizedBox(height: 120),
-                ],
-              );
-            },
-          ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.widgetBackground.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: Column(
+                      children: passengers.map((doc) {
+                        // ... map içindeki kod aynı kalabilir ...
+                        final data = doc.data() as Map<String, dynamic>;
+                        final passengerName = data['displayName'] ?? 'İsimsiz Yolcu';
+                        final bool isAttending = data['isAttending'] as bool? ?? false;
+                        final String attendanceStatus = isAttending ? 'Gelecek' : 'Gelmeyecek';
+                        final Color statusColor = isAttending ? CupertinoColors.activeGreen : CupertinoColors.systemRed;
+
+                        return CupertinoListTile(
+                          title: Text(
+                            passengerName,
+                            style: TextStyle(color: AppColors.primaryText.resolveFrom(context)),
+                          ),
+                          leading: Icon(
+                            CupertinoIcons.person_alt,
+                            color: AppColors.secondaryText.resolveFrom(context),
+                          ),
+                          trailing: Text(
+                            attendanceStatus,
+                            style: TextStyle(color: statusColor),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: CupertinoButton.filled(
+                    child: const Text('Rotayı Oluştur ve Başlat'),
+                    onPressed: () {
+                      print('Rota oluşturma işlemi başlatıldı.');
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            );
+          },
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 } 
