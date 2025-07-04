@@ -109,9 +109,9 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
         if (mounted) {
           setState(() {
             if (isAttending == true) {
-              _attendanceStatusText = 'Bugün Servise Katılacağım';
+              _attendanceStatusText = 'Bugün Servise Geleceğim';
             } else if (isAttending == false) {
-              _attendanceStatusText = 'Bugün Servise Katılmayacağım';
+              _attendanceStatusText = 'Bugün Servise Gelmeyeceğim';
             } else {
               _attendanceStatusText = 'Katılım Durumu Bilinmiyor';
             }
@@ -154,14 +154,14 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
       );
       if (mounted) {
         setState(() {
-          _attendanceStatusText = willAttend ? 'Bugün Servise Katılacağım' : 'Bugün Servise Katılmayacağım';
+          _attendanceStatusText = willAttend ? 'Bugün Servise Geleceğim' : 'Bugün Servise Gelmeyeceğim';
         });
       }
       _showAlertDialog(
         'Başarılı',
         willAttend
-            ? 'Katılım durumunuz "Katılacağım" olarak güncellendi.'
-            : 'Katılım durumunuz "Katılmayacağım" olarak güncellendi.',
+            ? 'Katılım durumunuz "Geleceğim" olarak güncellendi.'
+            : 'Katılım durumunuz "Gelmeyeceğim" olarak güncellendi.',
       );
     } catch (e) {
       _showAlertDialog('Hata', 'Katılım durumu güncellenirken bir sorun oluştu: $e');
@@ -268,106 +268,128 @@ class _YolcuSayfasiState extends State<YolcuSayfasi> {
                   child: CupertinoActivityIndicator(radius: 20.0),
                 ),
               Positioned(
-                bottom: 70.0,
-                right: 20.0,
-                left: 20.0,
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.primaryText.resolveFrom(context), width: 1),
-                        ),
-                        child: Text(
-                          'Durum: $_attendanceStatusText',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryText.resolveFrom(context),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+              bottom: 90.0,
+              right: 20.0,
+              left: 20.0,
+              child: SafeArea(
+                child: Row(
+                  // Grupları dikey olarak en alta hizala.
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // --- SOL GRUP: Durum Bilgisi ve Katılım Butonları ---
+                    // Bu grup, artık bir Column içeriyor ve kalan tüm boşluğu kaplıyor.
+                    Expanded(
+                      child: Column(
+                        // Bu Column'un içindeki widget'ların genişliğini doldurmasını sağla.
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min, // Dikeyde gereksiz yer kaplamasını önle
                         children: [
-                          Expanded(
-                            child: CupertinoButton(
+                          // BİLGİ KUTUSU BURAYA TAŞINDI VE DÜZELTİLDİ
+                          Container(
+                            // Padding düzeltildi: Sadece dikey boşluk veriyoruz.
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
                               color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                               borderRadius: BorderRadius.circular(10),
-                              onPressed: _isLoading ? null : () => _toggleAttendance(false),
-                              child: Text(
-                                'Katılmayacağım',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.primary.resolveFrom(context),
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              border: Border.all(color: AppColors.primaryText.resolveFrom(context), width: 1),
+                            ),
+                            child: Text(
+                              'Durum: $_attendanceStatusText',
+                              textAlign: TextAlign.center, // Metni ortala
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryText.resolveFrom(context),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: CupertinoButton(
-                              color: AppColors.primary.resolveFrom(context).withOpacity(0.8),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              borderRadius: BorderRadius.circular(10),
-                              onPressed: _isLoading ? null : () => _toggleAttendance(true),
-                              child: const Text(
-                                'Katılacağım',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: CupertinoColors.white,
-                                  fontWeight: FontWeight.bold,
+
+                          // Bilgi kutusu ile butonlar arasına boşluk
+                          const SizedBox(height: 10),
+
+                          // Katılım Butonları Satırı
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CupertinoButton(
+                                  color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  borderRadius: BorderRadius.circular(10),
+                                  onPressed: _isLoading ? null : () => _toggleAttendance(false),
+                                  child: Text(
+                                    'Gelmeyeceğim',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primary.resolveFrom(context),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            children: <Widget>[
-                              CupertinoButton(
-                                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                                padding: EdgeInsets.zero,
-                                borderRadius: BorderRadius.circular(50.0),
-                                child: _isFetchingLocation
-                                    ? const CupertinoActivityIndicator()
-                                    : Icon(
-                                  CupertinoIcons.location_fill,
-                                  color: AppColors.primary.resolveFrom(context),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: CupertinoButton(
+                                  color: AppColors.primary.resolveFrom(context).withOpacity(0.8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  borderRadius: BorderRadius.circular(10),
+                                  onPressed: _isLoading ? null : () => _toggleAttendance(true),
+                                  child: const Text(
+                                    'Geleceğim',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                                onPressed: _fetchUserLocation,
-                              ),
-                              const SizedBox(height: 10),
-                              CupertinoButton(
-                                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                                padding: EdgeInsets.zero,
-                                borderRadius: BorderRadius.circular(50.0),
-                                child: Icon(CupertinoIcons.add, color: AppColors.primary.resolveFrom(context)),
-                                onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1),
-                              ),
-                              const SizedBox(height: 10),
-                              CupertinoButton(
-                                color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
-                                padding: EdgeInsets.zero,
-                                borderRadius: BorderRadius.circular(50.0),
-                                child: Icon(CupertinoIcons.minus, color: AppColors.primary.resolveFrom(context)),
-                                onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1),
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+
+                    // İki ana grup arasında boşluk bırak
+                    const SizedBox(width: 16),
+
+                    // --- SAĞ GRUP: Harita Kontrol Butonları ---
+                    // Bu grup değişmeden kalıyor.
+                    Column(
+                      children: <Widget>[
+                        CupertinoButton(
+                          color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                          padding: EdgeInsets.zero,
+                          borderRadius: BorderRadius.circular(50.0),
+                          child: _isFetchingLocation
+                              ? const CupertinoActivityIndicator()
+                              : Icon(
+                            CupertinoIcons.location_fill,
+                            color: AppColors.primary.resolveFrom(context),
+                          ),
+                          onPressed: _fetchUserLocation,
+                        ),
+                        const SizedBox(height: 10),
+                        CupertinoButton(
+                          color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                          padding: EdgeInsets.zero,
+                          borderRadius: BorderRadius.circular(50.0),
+                          child: Icon(CupertinoIcons.add, color: AppColors.primary.resolveFrom(context)),
+                          onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1),
+                        ),
+                        const SizedBox(height: 10),
+                        CupertinoButton(
+                          color: AppColors.widgetBackground.resolveFrom(context).withOpacity(0.8),
+                          padding: EdgeInsets.zero,
+                          borderRadius: BorderRadius.circular(50.0),
+                          child: Icon(CupertinoIcons.minus, color: AppColors.primary.resolveFrom(context)),
+                          onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            ),
             ],
           ),
         ),
