@@ -83,8 +83,8 @@ class _YolcuProfilSayfasiState extends State<YolcuProfilSayfasi> {
               final email = _currentUser?.email ?? 'E-posta Yok';
 
               return ListView(
+                padding: EdgeInsets.zero,
                 children: [
-                  const SizedBox(height: 20),
                   _buildCustomListSection(
                     context: context,
                     header: 'KULLANICI BİLGİLERİ',

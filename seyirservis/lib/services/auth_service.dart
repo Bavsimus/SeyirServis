@@ -37,10 +37,11 @@ class AuthService {
     try {
       return await _firestore.collection('users').doc(uid).get();
     } catch (e) {
-      print("Kullanıcı detayları alınamadı: $e");
+      print("Kullanıcı detayı alınırken hata: $e");
       return null;
     }
   }
+
 
   Future<String?> sendPasswordResetEmail(String email) async {
     try {
